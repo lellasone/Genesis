@@ -42,13 +42,43 @@ void updateTimers(){
 
 
 boolean  updateX(){
+  /* Responcible for moving the X axis stepper one step if appropriate.
+   * Returns: True if at location, false otherwise. 
+   */
+  // check if target location reached.  
+  if (TargetX == CurrentZ){
+    TimerX = 0;
+    return false; 
+  }
 
+  // not at target, check if time for pulse. 
+  if (TimerX < TimeZ){
+    return false;
+  }
+
+  // Time for pulse, set direction.
+  if (TargetX > CurrentX){
+    digitalWrite(PIN_Z_DIRECTION, HIGH);
+    CurrentX += 1; // incriment location variable. 
+  } else {
+    digitalWrite(PIN_Z_DIRECTION, LOW);
+    CurrentX -= 1; // decriment location variable. 
+  }
+
+  // It's time for a pulse.
+  digitalWrite(PIN_X_PULSE, LOW);
+  delayMicroseconds(1); 
+  digitalWrite(PIN_X_PULSE, HIGH);
+  // update timer variable. 
+  TimerX -= TimeX;
+  return true;
+}
   
 }
 
 boolean  updateZ(){
   
-    /* Responcible for moving the Z axis stepper one step if appropriate.
+   /* Responcible for moving the Z axis stepper one step if appropriate.
    * Returns: True if at location, false otherwise. 
    */
   // check if target location reached.  
@@ -81,7 +111,39 @@ boolean  updateZ(){
 }
 
 boolean  updateC(){
-  
+
+
+  /* Responcible for moving the C axis stepper one step if appropriate.
+   * Returns: True if at location, false otherwise. 
+   */
+  // check if target location reached.  
+  if (TargetC == CurrentC){
+    TimerC = 0;
+    return false; 
+  }
+
+  // not at target, check if time for pulse. 
+  if (TimerC < TimeC){
+    return false;
+  }
+
+  // Time for pulse, set direction.
+  if (TargetC > CurrentC){
+    digitalWrite(PIN_C_DIRECTION, HIGH);
+    CurrentZ += 1; // incriment location variable. 
+  } else {
+    digitalWrite(PIN_C_DIRECTION, LOW);
+    CurrentC -= 1; // decriment location variable. 
+  }
+
+  // It's time for a pulse.
+  digitalWrite(PIN_C_PULSE, LOW);
+  delayMicroseconds(1); 
+  digitalWrite(PIN_C_PULSE, HIGH);
+  // update timer variable. 
+  TimerC -= TimeC;
+  return true;
+}
 }
 
 boolean  updateS(){

@@ -15,6 +15,20 @@
  #define PIN_Z_PULSE      17
  #define PIN_Z_ENDSTOP    16
 
+ 
+// X axis stepper pins. 
+ #define PIN_X_ENABLE     0
+ #define PIN_X_DIRECTION  0
+ #define PIN_X_PULSE      0
+ #define PIN_X_ENDSTOP    0
+
+
+// C axis stepper pins. 
+ #define PIN_C_ENABLE     0
+ #define PIN_C_DIRECTION  0
+ #define PIN_C_PULSE      0
+ #define PIN_C_ENDSTOP    0
+
  // 
  #define TIME_PER_DEGREE      100// time for the servo to move one degree in milliseconds. 
  #define Converstion_Speed_Z  10// mm/s to milliseconds per step. 

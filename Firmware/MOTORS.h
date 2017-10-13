@@ -28,6 +28,11 @@ int  TimeX = 10;
 int  TimeZ = 10;
 int  TimeC = 10;
 
+int Current[] = {0,0,0};
+long Target[] = {0,0,0};
+long Timer[]  = {0,0,0};
+int Time[] = {0,0,0};
+
 int  localMillis = 0;
 int  SpeedS = 0;     // cutter speed as a percentage.
 
@@ -35,124 +40,67 @@ void updateTimers(){
    
    int difference = millis() - localMillis;
    localMillis = millis();
-   TimerX += difference;
-   TimerZ += difference;
-   TimerC += difference;
+   Timer[XIN] += difference;
+   Timer[ZIN] += difference;
+   Timer[CIN] += difference;
 }
 
+boolean update_stepper(int i, int Pinpulse, int pinDirection){
+   /* Responcible for moving the stepper motor specified by one step if appropriate.
+   * Returns: True if at location, false otherwise. 
+   */
+  // check if target location reached.  
+  if (Target[i] == Current[i]){
+    Timer[i] = 0;
+    return false; 
+  }
+
+  // not at target, check if time for pulse. 
+  if (Timer[i] < Time[i]){
+    return false;
+  }
+
+  // Time for pulse, set direction.
+  if (Target[i] > Current[i]){
+    digitalWrite(pinDirection, HIGH);
+    Current[i] += 1; // incriment location variable. 
+  } else {
+    digitalWrite(pinDirection, LOW);
+    Current[i] -= 1; // decriment location variable. 
+  }
+
+  // It's time for a pulse.
+  digitalWrite(Pinpulse, LOW);
+  delayMicroseconds(10); 
+  Serial.println("Pulse");
+  digitalWrite(Pinpulse, HIGH);
+  // update timer variable. 
+  Timer[i] -= Time[i];
+  return true;
+}
 
 boolean  updateX(){
   /* Responcible for moving the X axis stepper one step if appropriate.
    * Returns: True if at location, false otherwise. 
    */
-  // check if target location reached.  
-  if (TargetX == CurrentZ){
-    TimerX = 0;
-    return false; 
-  }
-
-  // not at target, check if time for pulse. 
-  if (TimerX < TimeZ){
-    return false;
-  }
-
-  // Time for pulse, set direction.
-  if (TargetX > CurrentX){
-    digitalWrite(PIN_Z_DIRECTION, HIGH);
-    CurrentX += 1; // incriment location variable. 
-  } else {
-    digitalWrite(PIN_Z_DIRECTION, LOW);
-    CurrentX -= 1; // decriment location variable. 
-  }
-
-  // It's time for a pulse.
-  digitalWrite(PIN_X_PULSE, LOW);
-  delayMicroseconds(1); 
-  digitalWrite(PIN_X_PULSE, HIGH);
-  // update timer variable. 
-  TimerX -= TimeX;
-  return true;
+  return(update_stepper(XIN, PIN_X_PULSE, PIN_X_DIRECTION));
 }
-  
-}
+
 
 boolean  updateZ(){
-  
-   /* Responcible for moving the Z axis stepper one step if appropriate.
-   * Returns: True if at location, false otherwise. 
-   */
-  // check if target location reached.  
-  if (TargetZ == CurrentZ){
-    TimerZ = 0;
-    return false; 
-  }
-
-  // not at target, check if time for pulse. 
-  if (TimerZ < TimeZ){
-    return false;
-  }
-
-  // Time for pulse, set direction.
-  if (TargetZ > CurrentZ){
-    digitalWrite(PIN_Z_DIRECTION, HIGH);
-    CurrentZ += 1; // incriment location variable. 
-  } else {
-    digitalWrite(PIN_Z_DIRECTION, LOW);
-    CurrentZ -= 1; // decriment location variable. 
-  }
-
-  // It's time for a pulse.
-  digitalWrite(PIN_Z_PULSE, LOW);
-  delayMicroseconds(1); 
-  digitalWrite(PIN_Z_PULSE, HIGH);
-  // update timer variable. 
-  TimerZ -= TimeZ;
-  return true;
+  return(update_stepper(ZIN, PIN_Z_PULSE, PIN_Z_DIRECTION));
 }
 
 boolean  updateC(){
-
-
-  /* Responcible for moving the C axis stepper one step if appropriate.
-   * Returns: True if at location, false otherwise. 
-   */
-  // check if target location reached.  
-  if (TargetC == CurrentC){
-    TimerC = 0;
-    return false; 
-  }
-
-  // not at target, check if time for pulse. 
-  if (TimerC < TimeC){
-    return false;
-  }
-
-  // Time for pulse, set direction.
-  if (TargetC > CurrentC){
-    digitalWrite(PIN_C_DIRECTION, HIGH);
-    CurrentZ += 1; // incriment location variable. 
-  } else {
-    digitalWrite(PIN_C_DIRECTION, LOW);
-    CurrentC -= 1; // decriment location variable. 
-  }
-
-  // It's time for a pulse.
-  digitalWrite(PIN_C_PULSE, LOW);
-  delayMicroseconds(1); 
-  digitalWrite(PIN_C_PULSE, HIGH);
-  // update timer variable. 
-  TimerC -= TimeC;
-  return true;
-}
+  return(update_stepper(CIN, PIN_C_PULSE, PIN_C_DIRECTION));
 }
 
 boolean  updateS(){
-  
+  return true;
 }
 
 boolean  updateMotors(){
   updateTimers();
-  
   boolean X = updateX();
   boolean Z = updateZ();
   boolean C = updateC();

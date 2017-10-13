@@ -10,29 +10,34 @@
  */
  
 // Z axis stepper pins. 
- #define PIN_Z_ENABLE     19
- #define PIN_Z_DIRECTION  18
- #define PIN_Z_PULSE      17
- #define PIN_Z_ENDSTOP    16
+ #define PIN_Z_ENABLE     0
+ #define PIN_Z_DIRECTION  2
+ #define PIN_Z_PULSE      3
+ #define PIN_Z_ENDSTOP    0
 
  
 // X axis stepper pins. 
  #define PIN_X_ENABLE     0
- #define PIN_X_DIRECTION  0
- #define PIN_X_PULSE      0
+ #define PIN_X_DIRECTION  4
+ #define PIN_X_PULSE      5
  #define PIN_X_ENDSTOP    0
 
 
 // C axis stepper pins. 
  #define PIN_C_ENABLE     0
- #define PIN_C_DIRECTION  0
- #define PIN_C_PULSE      0
+ #define PIN_C_DIRECTION  6
+ #define PIN_C_PULSE      7
  #define PIN_C_ENDSTOP    0
 
+// axis indecicis. 
+ #define XIN 0
+ #define ZIN 1
+ #define CIN 2
+
  // 
- #define TIME_PER_DEGREE      100// time for the servo to move one degree in milliseconds. 
- #define Converstion_Speed_Z  10// mm/s to milliseconds per step. 
- #define Converstion_Speed_X  10// mm/s to milliseconds per step.
+ #define Converstion_Speed_Z  1// mm/s to milliseconds per step. 
+ #define Converstion_Speed_X  1// mm/s to milliseconds per step.
+ #define Converstion_Speed_C  1// mm/s to milliseconds per step.
  #define Conversion_Displacment_X 10 // TODO:Calculate.
  #define Conversion_Displacment_Z 10 // TODO: calculate.
  // General

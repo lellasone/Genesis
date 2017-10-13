@@ -47,6 +47,10 @@ class G1 : public GCommand{
    *  given. Negative values can be used to indicate no change. 
    *  This move type should be used for all linear cutting. 
    *  
+   *  The command is in the format:
+   *    G1 Xn Zn Cn Fn 
+   *  where n is a numeric value. 
+   *  
    *  Note: Feedrate will be applied as a per-axis speed cap 
    *  rather than a cap on the total movment speed. 
    */
@@ -67,21 +71,23 @@ G1::G1(long X, long Z, long C, long F){
 }
 
 void G1::execute (){
+  Serial.println("Setting New G1 Cords");
+  Serial.println(String(New_C));
   // Set new target locations. 
-  TargetZ = int(New_Z * Conversion_Displacment_Z);
-  TargetX = int(New_X * Conversion_Displacment_X);
-  TargetC = int(New_C);
+  Target[ZIN] = int(New_Z * Conversion_Displacment_Z);
+  Target[XIN] = int(New_X * Conversion_Displacment_X);
+  Target[CIN] = int(New_C);
 
   // Set new speeds. 
-  TimeZ = New_F * Converstion_Speed_Z;
-  TimeX = New_F * Converstion_Speed_X;
-  TimeC = TargetC * TIME_PER_DEGREE;
+  Time[ZIN] = New_F * Converstion_Speed_Z;
+  Time[XIN] = New_F * Converstion_Speed_X;
+  Time[CIN] = New_F * Converstion_Speed_C;
 
   // clear timers. Needed in case there was a delay between
   // this move call and the last. 
-  TimerZ = 0;
-  TimerX = 0;
-  TimerC = 0;
+  Timer[ZIN] = 0;
+  Timer[XIN] = 0;
+  Timer[CIN] = 0;
 }
 
 bool G1::hold (){
@@ -91,15 +97,16 @@ bool G1::hold (){
    * 
    * Returns: True if incomplete, False if complete. 
    */
-  if (CurrentX != TargetX){
+  if (Current[XIN] != Target[XIN]){
     return true;
   }
-  if (CurrentZ != TargetZ){
+  if (Current[ZIN] != Target[ZIN]){
     return true;
   }
-  if (TimerC >= TimeC){
+  if (Current[CIN] != Target[CIN]){
     return true;
   }
+  Serial.println("G1 Complete");
   return false;
 }
 

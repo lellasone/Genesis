@@ -111,3 +111,66 @@ bool G1::hold (){
 }
 
 
+
+class G30 : public GCommand{
+  /* 
+   *  Fast movee command to a position 1 inch directly above the bottom of the vice,
+   *  at the the sholder-stop of the workpiece with angle = 0. This is used to establish
+   *  a consistent location reletive to the work-piece for reletive move commands. 
+   *  
+   *  The command is in the format:
+   *    G30
+   */
+  long New_X, New_Z, New_C, New_F;
+  public:
+    G30();
+    void execute();
+    bool hold();
+ };
+  
+G30::G30(){
+  New_X = G30X;
+  New_Z = G30Z;
+  New_C = G30C;
+  New_F = DEFAULT_MOVE_FEED;
+}
+
+void G30::execute (){
+  // Set new target locations. 
+  Target[ZIN] = int(New_Z);
+  Target[XIN] = int(New_X);
+  Target[CIN] = int(New_C);
+
+  // Set new speeds. 
+  Time[ZIN] = New_F * Converstion_Speed_Z;
+  Time[XIN] = New_F * Converstion_Speed_X;
+  Time[CIN] = New_F * Converstion_Speed_C;
+
+  // clear timers. Needed in case there was a delay between
+  // this move call and the last. 
+  Timer[ZIN] = 0;
+  Timer[XIN] = 0;
+  Timer[CIN] = 0;
+}
+
+bool G30::hold (){
+  /*
+   * This function is called repeatedly to check whether the command has 
+   * been completed.
+   * 
+   * Returns: True if incomplete, False if complete. 
+   */
+  if (Current[XIN] != Target[XIN]){
+    return true;
+  }
+  if (Current[ZIN] != Target[ZIN]){
+    return true;
+  }
+  if (Current[CIN] != Target[CIN]){
+    return true;
+  }
+  Serial.println("G1 Complete");
+  return false;
+}
+
+

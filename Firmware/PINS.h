@@ -34,6 +34,14 @@
  #define ZIN 1
  #define CIN 2
 
+// G30 location, given in steps. 
+#define G30X 100
+#define G30Z 100
+#define G30C 0 // given in degrees
+
+// defaults
+#define DEFAULT_MOVE_FEED 10
+
  // 
  #define Converstion_Speed_Z  1// mm/s to milliseconds per step. 
  #define Converstion_Speed_X  1// mm/s to milliseconds per step.

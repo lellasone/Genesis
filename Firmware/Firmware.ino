@@ -117,13 +117,18 @@ GCommand * process_G(String command[]){
    Serial.println("processing G command: " + String(command[0]));
    GCommand * newCommand;
    switch (command[0][1]) {
-    case '1':
+    case '1':{
       Serial.println("Processing G1");
       long X = getArg(command, 'X', 5);
       long Z = getArg(command, 'Z', 5);
       long C = getArg(command, 'C', 5);
       long F = getArg(command, 'F', 5);
       newCommand = new G1(X,Z,C,F);
+      break;
+    }
+    case '3':
+      Serial.println("Processing G30");
+      newCommand = new G30();
    }
    return(newCommand);
 }

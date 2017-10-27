@@ -1,4 +1,5 @@
 import Tkinter as tk
+import Generic
 
 class main_gui:
     def __init__(self, master):
@@ -11,14 +12,23 @@ class main_gui:
         self.manual_speed = tk.IntVar()
         self.manual_speed.set(5) #default move distance, in thou
 
+        self.workpiece_script = Generic.generic() #stores the workpiece object.
+        self.workpiece_frame = self.workpiece_script.return_gui_frame()  #stores the workpiece GUI.
 
         self.master = master
         menu = self._return_menu_bar(master)
         master.config(menu = menu)
 
         manual = self._return_manual_control(self.master)
-        manual.pack()
+        spacer = tk.Frame(bd = 4, relief = "ridge", width = 6, padx = 30, height = 6 * 20)
 
+
+        manual.grid(row = 1, column = 0)
+        spacer.grid(row = 1, column = 1)
+        self.workpiece_frame.grid(row = 1, column = 2)
+
+    def return_workpiece_script(self, type):
+        return Generic.generic()
 
     def _return_manual_control(self, master):
         sub_frame = tk.Frame(master)

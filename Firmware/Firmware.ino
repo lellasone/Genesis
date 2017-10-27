@@ -126,10 +126,11 @@ GCommand * process_G(String command[]){
       newCommand = new G1(X,Z,C,F);
       break;
     }
-    case '3':
+    case '3':{
       Serial.println("Processing G30");
       newCommand = new G30();
-   }
+    }
+  }
    return(newCommand);
 }
 

@@ -5,22 +5,28 @@ class generic():
     _feed_rate_move = 1000 #thou/second non-contact moves.
     _feed_rate_cut = 20    #thou/second contact moves.
     _safe_Z = 1000 #Given in thou, reletive to the base of the workpiece. Should
-    _G30 = {1000, 0, 0} #G30 reletive to bottom of workpiece sholder stop
     _workpiece_height = 250 # Z height of work piece reletive to vice.
 
-    # arrays of IntVars used to back GUI
     _well_spacings = []
     _well_angles = []
     _well_depths = []
 
+    # arrays of IntVars used to back GUI
+    _backing_well_spacings = []
+    _backing_well_angles = []
+    _backing_well_depths = []
 
+
+    #Constants
     _DEFAULT_DEPTH = 0
     _DEFAULT_SPACING = 300
     _DEFAULT_ANGLE = 0
+    _G30 = {1000, 0, 0} #G30 reletive to bottom of workpiece sholder stop
 
     def __init__(self):
         self._backing_height = tk.IntVar()
         self._backing_num_pins = tk.IntVar()
+        self._backing_num_pins.set(self._num_pins)
         self._backing_type = tk.StringVar()  #Stores the current model metal stock.
         self._backing_type.set("default")
         self._backing_code = tk.StringVar()
@@ -41,7 +47,7 @@ class generic():
         basic.grid(row = 0, column = 0, columnspan = 1, rowspan = 2)
         title.grid(row = 0, column = 0, columnspan = 2)
         pins.grid(row = 1, column = 1, columnspan = 2)
-        params.grid(row = 2, column = 1, sticky = 'W')
+        params.grid(row = 1, column = 3, sticky = 'W')
         return subframe
 
     def _return_basic_frame(self, master):
@@ -49,9 +55,16 @@ class generic():
         stock_label = tk.Label(subframe, text = "Type: ")
         stock = tk.OptionMenu(subframe, self._backing_type, "default", "test")
         stock.config(width = 12)
-        code = self._return_label_entry(subframe, "Code: ", self._backing_code, width = 18)
-        save = tk.Button(subframe, text = "Save", width = 20)
-        run = tk.Button(subframe, text = "Run", width = 20)
+        code = self._return_label_entry(subframe,
+                                        "Code: ",
+                                        self._backing_code,
+                                        width = 18)
+        save = tk.Button(subframe, text = "Save",
+                         width = 20,
+                         command = self._save_code)
+        run = tk.Button(subframe,
+                        text = "Run",
+                        width = 20)
 
 
         stock_label.grid(row = 0, column = 0)
@@ -75,8 +88,6 @@ class generic():
         num_pins.grid(row = 0, column = 1)
 
         return subframe
-
-
 
     def _return_label_entry(self, master, text, textVar , callback = "null", width = 15):
         """
@@ -116,9 +127,9 @@ class generic():
 
         for i in range(0, self._num_pins):
             name = tk.Label(subframe, text = "Pin " + str((i + 1)))
-            depth = tk.Entry(subframe, textvariable = self._well_depths[i])
-            angle = tk.Entry(subframe, textvariable = self._well_angles[i])
-            spacing = tk.Entry(subframe, textvariable = self._well_spacings[i])
+            depth = tk.Entry(subframe, textvariable = self._backing_well_depths[i])
+            angle = tk.Entry(subframe, textvariable = self._backing_well_angles[i])
+            spacing = tk.Entry(subframe, textvariable = self._backing_well_spacings[i])
 
             name.grid(row = 0, column = i + 1)
             depth.grid(row = 1, column = i + 1)
@@ -127,23 +138,22 @@ class generic():
 
         return subframe
 
-
     def set_lists_default(self):
-        self._well_angles = []
-        self._well_depths = []
-        self._well_spacings = []
+        self._backing_well_angles = []
+        self._backing_well_depths = []
+        self._backing_well_spacings = []
 
-        self._well_angles = self.generate_list(self._well_angles,
-                                               self._num_pins,
-                                               self._DEFAULT_ANGLE)
+        self._backing_well_angles = self.generate_list(self._backing_well_angles,
+                                                       self._num_pins,
+                                                       self._DEFAULT_ANGLE)
 
-        self._well_spacings = self.generate_list(self._well_spacings,
-                                               self._num_pins,
-                                               self._DEFAULT_SPACING)
+        self._backing_well_spacings = self.generate_list(self._backing_well_spacings,
+                                                         self._num_pins,
+                                                         self._DEFAULT_SPACING)
 
-        self._well_depths = self.generate_list(self._well_depths,
-                                               self._num_pins,
-                                               self._DEFAULT_DEPTH)
+        self._backing_well_depths = self.generate_list(self._backing_well_depths,
+                                                       self._num_pins,
+                                                       self._DEFAULT_DEPTH)
 
     def generate_list(self, list, length, value):
         for i in range(0, length):
@@ -152,10 +162,45 @@ class generic():
             list.append(temp)
         return list
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Callbacks:
 
+    def _save_code(self):
+        self._take_snapshot()
+        code = self.generate(self._well_depths, self._well_angles, self._well_spacings)
+        print code
+
+    def _take_snapshot(self):
+        self._num_pins = self._backing_num_pins.get()
+        self._workpiece_height = self._backing_height.get()
+
+        self._well_spacings = self._convert_tk_array(self._backing_well_spacings)
+        self._well_depths = self._convert_tk_array(self._backing_well_depths)
+        self._well_angles = self._convert_tk_array(self._backing_well_angles)
+
+
+    def _convert_tk_array(self, tk_array):
+        """
+        Takes an array of TK vars, and generates an array containing there
+        corresponding values.
+        :param tk_array:
+        :param array:
+        :return:
+        """
+        array = []
+        for i in range(0, self._num_pins):
+            array.append(tk_array[i].get())
+        return array
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Script:
     def generate(self, well_heights, well_angles, well_spacings):
         """
-
+        This function is responcible for generating a complete G-Code program
+        for the specified angles, heights, and spacings. The resultant spacing
+        program includes the start and end code specified in those functions,
+        and is intended to be run as a block.
         :param well_heights: an int array giving the height of each well as
                              measured from the base of the workpiece to the
                              bottom of the desired cut.
@@ -164,20 +209,21 @@ class generic():
                              the work piece. Positive angles will result in
                              counterclockwise rotation.
         :param well_spacings: An int array specifying the gap between the
-                             previous cutter location and the new well. 
-        :return:
+                             previous cutter location and the new well.
+        :return: An array containing the commands for a single complete piece.
         """
         command_list = []
 
         command_list.extend(self.generate_start_code())
-
-        for i in range(0, len(well_heights)):
+        for i in range(0, self._num_pins):
             depth = self._workpiece_height - well_heights[i]
             command_list.extend(self.generate_pin_codes(depth,
                                                         well_angles[i],
                                                         well_spacings[i]))
 
         command_list.extend((self.generate_end_code()))
+
+        return command_list
 
     def generate_start_code(self):
         """
@@ -211,33 +257,32 @@ class generic():
         command_list.append(self._generate_G1(spacing,
                                               0,
                                               angle,
-                                              self.feed_rate_move))
+                                              self._feed_rate_move))
         # Positioned above current well at safe height. A = Angle
-        command_list.append(self._generage_G1(0,
+        command_list.append(self._generate_G1(0,
                                               - self._safe_Z + self._workpiece_height,
                                               0,
-                                              self.feed_rate_move))
+                                              self._feed_rate_move))
         # Positioned above current well at top of piece. A = Angle.
         command_list.append(self._generate_G1(0,
                                               -1 * depth,
                                               0,
                                               self._feed_rate_cut))
         # Positioned at the bottom of the well. A = Angle.
-        command_list.append(self._generage_G1(0,
+        command_list.append(self._generate_G1(0,
                                               self._safe_Z - (self._workpiece_height - depth),
                                               0,
                                               self._feed_rate_move))
         # Positioned at _safe_z above well. A = Angle.
-        command_list.append(self._generage_G1(0,
+        command_list.append(self._generate_G1(0,
                                               0,
                                               -1 * angle,
                                               self._feed_rate_move))
         # Positioned at _safe_z above well. A = 0.
-
         return command_list
 
 
-    def _generage_G1(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
+    def _generate_G1(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
         """
         Generates a string coresponding to a single G1 command. This function
         implicitly assumes that the device is in reletive mode, and will thus

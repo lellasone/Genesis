@@ -25,6 +25,7 @@ void M123(){
    *    M123 command, pauses execution of the command queue. This is principally 
    *    used to begin recipt of a new GCode program. 
    */
+  Serial.println("pausing Queue");
   runQueue = false;
 }
 
@@ -49,9 +50,9 @@ void serialEvent(){
   String command_new = Serial.readString();
   if (command_new == COMMAND_STOP){
     commandStop();
-  } else if (command_new == M123){
+  } else if (command_new == COMMAND_PAUSE){
     M123();
-  } else if (command_new == M124){
+  } else if (command_new == COMMAND_RESUME){
     M124();
   }
   // TODO: Add a check that this is a valid command.  

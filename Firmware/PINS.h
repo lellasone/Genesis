@@ -54,5 +54,5 @@
  // G-Code commands.
 String COMMAND_STOP   = "M00"; // no arguments.
 String COMMAND_RAPID  = "G0";  // X, Z, C
-String COMMAND_M123 = "M123";
-String COMMAND_M124 = "M124";
+String COMMAND_PAUSE = "M123";
+String COMMAND_RESUME = "M124";

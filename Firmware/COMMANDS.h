@@ -74,9 +74,15 @@ void G1::execute (){
   Serial.println("Setting New G1 Cords");
   Serial.println(String(New_C));
   // Set new target locations. 
-  Target[ZIN] = int(New_Z * Conversion_Displacment_Z);
-  Target[XIN] = int(New_X * Conversion_Displacment_X);
-  Target[CIN] = int(New_C);
+  if (absolute){
+    Target[ZIN] = int(New_Z * Conversion_Displacment_Z);
+    Target[XIN] = int(New_X * Conversion_Displacment_X);
+    Target[CIN] = int(New_C);
+  } else {
+    Target[ZIN] += int(New_Z * Conversion_Displacment_Z);
+    Target[XIN] += int(New_X * Conversion_Displacment_X);
+    Target[CIN] += int(New_C);
+  }
 
   // Set new speeds. 
   Time[ZIN] = New_F * Converstion_Speed_Z;

@@ -4,9 +4,9 @@ import os
 
 class generic():
     _num_pins = 7
-    _feed_rate_move = 1000 #thou/second non-contact moves.
-    _feed_rate_cut = 20    #thou/second contact moves.
-    _safe_Z = 1000 #Given in thou, reletive to the base of the workpiece. Should
+    _feed_rate_move = 1 #thou/second non-contact moves.
+    _feed_rate_cut = 2    #thou/second contact moves.
+    _safe_Z = 1 #Given in thou, reletive to the base of the workpiece. Should
     _workpiece_height = 250 # Z height of work piece reletive to vice.
 
     _well_spacings = []
@@ -171,8 +171,9 @@ class generic():
         self._take_snapshot()
         code = self.generate(self._well_depths, self._well_angles, self._well_spacings)
         name = tkFileDialog.asksaveasfilename(defaultextension='.txt')
-        self._write_code_file(name, code)
+
         self._print_array(code)
+        self._write_code_file(name, code)
 
     def _write_code_file(self, name, code):
         try:
@@ -234,6 +235,7 @@ class generic():
         """
         command_list = []
 
+
         command_list.extend(self.generate_start_code())
         for i in range(0, self._num_pins):
             depth = self._workpiece_height - well_heights[i]
@@ -245,7 +247,7 @@ class generic():
                                                         well_angles[i],
                                                         spacing))
 
-        command_list.extend((self.generate_end_code()))
+        command_list.extend(self.generate_end_code())
 
         return command_list
 
@@ -253,13 +255,17 @@ class generic():
         """
         :return:
         """
-        return []
+        command_list = []
+        command_list.append(self._pause_execution()) #start program record
+        return command_list
 
     def generate_end_code(self):
         """
         :return:
         """
-        return []
+        command_list = []
+        command_list.append(self._resume_execution()) #start program run
+        return command_list
 
     def generate_pin_codes(self, depth, angle, spacing):
         """
@@ -278,37 +284,37 @@ class generic():
         """
         command_list = []
         # Positioned above pervious well at safe height. A = 0
-        command_list.append(self._generate_G1(spacing,
-                                              0,
-                                              angle,
-                                              self._feed_rate_move))
+        command_list.append(self._controlled_move(spacing,
+                                                  0,
+                                                  angle,
+                                                  self._feed_rate_move))
         # Positioned above current well at safe height. A = Angle
-        command_list.append(self._generate_G1(0,
-                                              - self._safe_Z + self._workpiece_height,
-                                              0,
-                                              self._feed_rate_move))
+        command_list.append(self._controlled_move(0,
+                                                  - self._safe_Z + self._workpiece_height,
+                                                  0,
+                                                  self._feed_rate_move))
         # Positioned above current well at top of piece. A = Angle.
-        command_list.append(self._generate_G1(0,
-                                              -1 * depth,
-                                              0,
-                                              self._feed_rate_cut))
+        command_list.append(self._controlled_move(0,
+                                                  -1 * depth,
+                                                  0,
+                                                  self._feed_rate_cut))
         # Positioned at the bottom of the well. A = Angle.
-        command_list.append(self._generate_G1(0,
-                                              self._safe_Z - (self._workpiece_height - depth),
-                                              0,
-                                              self._feed_rate_move))
+        command_list.append(self._controlled_move(0,
+                                                  self._safe_Z - (self._workpiece_height - depth),
+                                                  0,
+                                                  self._feed_rate_move))
         # Positioned at _safe_z above well. A = Angle.
-        command_list.append(self._generate_G1(0,
-                                              0,
-                                              -1 * angle,
-                                              self._feed_rate_move))
+        command_list.append(self._controlled_move(0,
+                                                  0,
+                                                  -1 * angle,
+                                                  self._feed_rate_move))
         # Positioned at _safe_z above well. A = 0.
         return command_list
 
 
-    def _generate_G1(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
+    def _controlled_move(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
         """
-        Generates a string coresponding to a single G1 command. This function
+        Generates a string corresponding to a single G1 command. This function
         implicitly assumes that the device is in reletive mode, and will thus
         default x, z, and a values to 0 if no value is provided.
         :param X:
@@ -317,4 +323,22 @@ class generic():
         :param F:
         :return:
         """
-        return "G1, X{0}, Z{1}, A{2}, F{0}".format(X, Z, A, F)
+        return "G1,X{0},Z{1},A{2},F{3}".format(X, Z, A, F)
+
+    def _pause_execution(self):
+        """
+        Generates the string corresponding to a pause execution command. Once
+        sent the command queue will immediately stop being executed (but will not
+        be cleared)
+        :return: string
+        """
+        return "M123"
+
+    def _resume_execution(self):
+        """
+        Generates the string corresponding to a resume execution command. The
+        command queue will resume execution imediatly upon recipt of this
+        command.
+        :return: string
+        """
+        return "M124"

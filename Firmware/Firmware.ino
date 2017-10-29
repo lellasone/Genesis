@@ -15,13 +15,15 @@
  *    G1  - Rapid move.       Arguments: X,Z,C,F
  */
 
+char *tokenPointer;
+bool runQueue; // if false queue execution pause. 
+bool absolute; // if true move commands in absolute cords.
+
 #include "MOTORS.h"
 //#include "PINS.h"
 #include "SERIAL_PARSER.h"
 #include "COMMANDS.h"
 
-char *tokenPointer;
-bool runQueue = true; // if false queue execution pause. 
 
 void setup() {
   // put your setup code here, to run once:
@@ -31,6 +33,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(TIMEOUT);
   Serial.println("Serial Ready");
+  runQueue = true;
 }
 
 void setupX(){
@@ -148,6 +151,7 @@ long getArg(String command[], char arg, int len){
  */
 
  for(int i = 0; i < len; i++){
+   Serial.println(command[i][1]);
   if(command[i][0] == arg){
     return command[i].substring(1).toInt();
   }

@@ -20,6 +20,22 @@ void commandStop(){
   }
 }
 
+void M123(){
+  /*
+   *    M123 command, pauses execution of the command queue. This is principally 
+   *    used to begin recipt of a new GCode program. 
+   */
+  runQueue = false;
+}
+
+void M124(){
+  /*
+   * M124 command, resumes execution of the command queue. This is principally used to 
+   * begin execution of a GCode program after recipt of a GCode program. 
+   */
+  runQueue = true; 
+}
+
 
 
 
@@ -33,6 +49,10 @@ void serialEvent(){
   String command_new = Serial.readString();
   if (command_new == COMMAND_STOP){
     commandStop();
+  } else if (command_new == M123){
+    M123();
+  } else if (command_new == M124){
+    M124();
   }
   // TODO: Add a check that this is a valid command.  
   CommandQueue.push(command_new);

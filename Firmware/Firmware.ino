@@ -21,6 +21,7 @@
 #include "COMMANDS.h"
 
 char *tokenPointer;
+bool runQueue = true; // if false queue execution pause. 
 
 void setup() {
   // put your setup code here, to run once:
@@ -58,7 +59,7 @@ void setupC(){
 
 
 void loop() {
-  if (!CommandQueue.isEmpty()){
+  if (!CommandQueue.isEmpty() && runQueue){
     GCommand *command = getNewCommand();
     command->execute();
     while (command->hold()){

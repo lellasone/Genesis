@@ -1,4 +1,6 @@
 import Tkinter as tk
+import tkFileDialog
+import os
 
 class generic():
     _num_pins = 7
@@ -168,7 +170,19 @@ class generic():
     def _save_code(self):
         self._take_snapshot()
         code = self.generate(self._well_depths, self._well_angles, self._well_spacings)
-        print code
+        name = tkFileDialog.asksaveasfilename(defaultextension='.txt')
+        self._write_code_file(name, code)
+        self._print_array(code)
+
+    def _write_code_file(self, name, code):
+        try:
+            file = open(name, 'w')
+            for line in code:
+                file.write(line)
+                file.write(os.linesep)
+            file.close()
+        except IOError as e:
+            print "IOError has occured during save: [{0}]".format(e)
 
     def _take_snapshot(self):
         self._num_pins = self._backing_num_pins.get()
@@ -177,6 +191,10 @@ class generic():
         self._well_spacings = self._convert_tk_array(self._backing_well_spacings)
         self._well_depths = self._convert_tk_array(self._backing_well_depths)
         self._well_angles = self._convert_tk_array(self._backing_well_angles)
+
+    def _print_array(self, array):
+        for string in array:
+            print string
 
 
     def _convert_tk_array(self, tk_array):
@@ -210,6 +228,8 @@ class generic():
                              counterclockwise rotation.
         :param well_spacings: An int array specifying the gap between the
                              previous cutter location and the new well.
+                             Spacings are assumed to be given as absolute values
+                             in thou, reletive to the workpiece sholder.
         :return: An array containing the commands for a single complete piece.
         """
         command_list = []
@@ -217,9 +237,13 @@ class generic():
         command_list.extend(self.generate_start_code())
         for i in range(0, self._num_pins):
             depth = self._workpiece_height - well_heights[i]
+            if i == 0:
+                spacing = well_spacings[i]
+            else:
+                spacing = well_spacings[i] - well_spacings[i-1]
             command_list.extend(self.generate_pin_codes(depth,
                                                         well_angles[i],
-                                                        well_spacings[i]))
+                                                        spacing))
 
         command_list.extend((self.generate_end_code()))
 

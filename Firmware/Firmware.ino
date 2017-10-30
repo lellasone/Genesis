@@ -57,6 +57,7 @@ void setupC(){
   digitalWrite(PIN_C_ENABLE, HIGH);
   pinMode(PIN_C_DIRECTION, OUTPUT);
   pinMode(PIN_C_PULSE, OUTPUT);
+  runQueue = true;
 }
 
 
@@ -120,8 +121,10 @@ GCommand * process_G(String command[]){
    */
    Serial.println("processing G command: " + String(command[0]));
    GCommand * newCommand;
-   switch (command[0][1]) {
-    case '1':{
+   delay(1000);
+   Serial.println(String(asciiToInt(command[0])));
+   switch (asciiToInt(command[0])) {
+    case 1:{
       Serial.println("Processing G1");
       long X = getArg(command, 'X', 5);
       long Z = getArg(command, 'Z', 5);
@@ -130,9 +133,20 @@ GCommand * process_G(String command[]){
       newCommand = new G1(X,Z,C,F);
       break;
     }
-    case '3':{
+    case 30:{
       Serial.println("Processing G30");
       newCommand = new G30();
+      break;
+    }
+    case 90:{
+      Serial.println("Processing G90");
+      newCommand = new G90();
+      break;
+    }
+    case 91:{
+      Serial.println("Processing G91");
+      newCommand = new G91();
+      break;
     }
   }
    return(newCommand);
@@ -186,5 +200,25 @@ String tokenize (char sep){
    token[i] = 0;
    tokenPointer += i + 1;
    return String(token);
+}
+
+int asciiToInt(String num){
+  /* This function takes a string and returns it's Int equivilent. Note, that
+   * if it is provided with non-digits the result may be less than ideal. 
+   */
+   int finalNum = 0;
+   int place = 1;
+
+   for(int i = 0; i <num.length(); i++){
+    if (isdigit(num[i])){
+      Serial.println(int(num[i]));
+      finalNum *= place;
+      finalNum += int(num[i]) - 48;
+      place *= 10;
+      Serial.println(String(finalNum));
+    }
+   }
+    
+   return finalNum;
 }
 

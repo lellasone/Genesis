@@ -48,7 +48,7 @@ class G1 : public GCommand{
    *  This move type should be used for all linear cutting. 
    *  
    *  The command is in the format:
-   *    G1 Xn Zn Cn Fn 
+   *    "G1,Xn,Zn,Cn,Fn"
    *  where n is a numeric value. 
    *  
    *  Note: Feedrate will be applied as a per-axis speed cap 
@@ -61,8 +61,6 @@ class G1 : public GCommand{
     bool hold();
  };
 
-
-  
 G1::G1(long X, long Z, long C, long F){
   New_X = X;
   New_Z = Z;
@@ -179,4 +177,70 @@ bool G30::hold (){
   return false;
 }
 
+class G90 : public GCommand{
+  /* 
+   *  Switches from relative to absolute positioning mode. When this command
+   *  is sent, subsequent G1 and G0 commands will be interpreted as cords
+   *  reletive to the device's zero location. 
+   *  
+   *  The command is in the format:
+   *    G90
+   */
+  public:
+    G90();
+    void execute();
+    bool hold();
+ };
+  
+G90::G90(){
+  
+}
+
+void G90::execute (){
+  absolute = true; 
+}
+
+bool G90::hold (){
+  /*
+   * This function is called repeatedly to check whether the command has 
+   * been completed. This will alwasy be false.
+   * 
+   * Returns: True if incomplete, False if complete. 
+   */
+  return false;
+}
+
+
+class G91 : public GCommand{
+  /* 
+   *  Switches from absolute to relative positioning mode. When this command
+   *  is sent, subsequent G1 and G0 commands will be interpreted as cords
+   *  reletive to the device's location when that command is executed. 
+   *  
+   *  The command is in the format:
+   *    G91
+   */
+  public:
+    G91();
+    void execute();
+    bool hold();
+ };
+  
+G91::G91(){
+  
+}
+
+void G91::execute (){
+  absolute = false; 
+}
+
+bool G91::hold (){
+  /*
+   * This function is called repeatedly to check whether the command has 
+   * been completed. This will alwasy be false.
+   * 
+   * Returns: True if incomplete, False if complete. 
+   */
+  return false;
+}
 

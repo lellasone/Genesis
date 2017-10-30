@@ -55,7 +55,8 @@ void serialEvent(){
   } else if (command_new == COMMAND_RESUME){
     M124();
   }
-  // TODO: Add a check that this is a valid command.  
+  // TODO: Add a check that this is a valid command.
+  Serial.println("new_command");
   CommandQueue.push(command_new);
 }
 

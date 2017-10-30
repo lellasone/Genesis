@@ -257,6 +257,7 @@ class generic():
         """
         command_list = []
         command_list.append(self._pause_execution()) #start program record
+        command_list.append(self._set_relative())
         return command_list
 
     def generate_end_code(self):
@@ -342,3 +343,22 @@ class generic():
         :return: string
         """
         return "M124"
+
+    def _set_absolute(self):
+        """
+        generates the string corresponding to a set absolute command. This will
+        be added be added to the command queue, and, when executed, will cause
+        subsequent move commands to be interpreted reletive to machine zero.
+        :return: String
+        """
+        return "G90"
+
+    def _set_relative(self):
+        """
+        generates the string corresponding to a set relative command. This will
+        be added to the command queue and, when executed, will cause subsequnet
+        move commands to be interpreted relative to the machine position when
+        they are executed.
+        :return:
+        """
+        return "G91"

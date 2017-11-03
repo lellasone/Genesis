@@ -3,6 +3,8 @@ import Generic
 
 class main_gui:
     def __init__(self, master):
+        self.origin = master
+        self.master = tk.Frame(self.origin)
         self.manual_x_distance = tk.IntVar()
         self.manual_x_distance.set(5) #default move distance, in thou
         self.manual_z_distance = tk.IntVar()
@@ -13,19 +15,24 @@ class main_gui:
         self.manual_speed.set(5) #default move distance, in thou
 
         self.workpiece_script = Generic.generic() #stores the workpiece object.
-        self.workpiece_frame = self.workpiece_script.return_gui_frame()  #stores the workpiece GUI.
+        self._set_basic()
 
-        self.master = master
         menu = self._return_menu_bar(master)
         master.config(menu = menu)
 
+    def create_gui(self, jog, advanced):
+        self.master.destroy()
+        self.master = tk.Frame(self.origin)
         manual = self._return_manual_control(self.master)
         spacer = tk.Frame(bd = 4, relief = "ridge", width = 6, padx = 30, height = 6 * 20)
+        self.workpiece_frame = self.workpiece_script.return_gui_frame(self.master, advanced)
 
-
-        manual.grid(row = 1, column = 0)
-        spacer.grid(row = 1, column = 1)
-        self.workpiece_frame.grid(row = 1, column = 2)
+        if jog:
+            print "making job"
+            manual.grid(row = 1, column = 0)
+            #spacer.grid(row = 1, column = 1)
+        self.workpiece_frame.grid(row = 1, column = 3)
+        self.master.grid()
 
     def return_workpiece_script(self, type):
         return Generic.generic()
@@ -94,10 +101,24 @@ class main_gui:
     def _return_menu_bar(self, master):
         menu_top = tk.Menu(master)
         menu_top.add_command(label = "Help", command = self._display_help)
+        mode = tk.Menu(master, )
+        mode.add_command(label = "basic", command = self._set_basic)
+        mode.add_command(label = "Advanced", command = self._set_advanced)
+        mode.add_command(label = "Expert", command = self._set_expert)
+
+        menu_top.add_cascade(label = "mode", menu = mode)
 
         return menu_top
 
+    def _set_expert(self):
+        self.create_gui(True, True)
 
+    def _set_advanced(self):
+        self.create_gui(False, True)
+
+    def _set_basic(self):
+        print "setting basic"
+        self.create_gui(False, False)
 
 
 

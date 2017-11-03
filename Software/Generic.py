@@ -3,10 +3,15 @@ import tkFileDialog
 import os
 
 class generic():
+    _data_folder = "data"
+    _keyway_dict = {}
+    _default_type = "Sargent - DG1"
+
+    # Keyway data
     _num_pins = 7
     _feed_rate_move = 1 #thou/second non-contact moves.
     _feed_rate_cut = 2    #thou/second contact moves.
-    _safe_Z = 1 #Given in thou, reletive to the base of the workpiece. Should
+    _safe_Z = 1000 #Given in thou, reletive to the base of the workpiece. Should
     _workpiece_height = 250 # Z height of work piece reletive to vice.
 
     _well_spacings = []
@@ -26,47 +31,96 @@ class generic():
     _G30 = {1000, 0, 0} #G30 reletive to bottom of workpiece sholder stop
 
     def __init__(self):
+        self._import_workpiece_types(self._data_folder)
+        self.current_keyway = self._keyway_dict[self._default_type]
+        self._backing_type = tk.StringVar()  #Stores the current model metal stock.
+        self._backing_type.set(self._default_type)
+
         self._backing_height = tk.IntVar()
         self._backing_num_pins = tk.IntVar()
         self._backing_num_pins.set(self._num_pins)
-        self._backing_type = tk.StringVar()  #Stores the current model metal stock.
-        self._backing_type.set("default")
         self._backing_code = tk.StringVar()
         self._backing_code.set(" ")
+        self._backing_safe_z = tk.IntVar()
+        self._backing_safe_z.set(self._safe_Z)
+
+        # backing variables for offsets.
+        self._backing_depth_offset = tk.IntVar()
+        self._backing_depth_offset.set(0)
+        self._backing_spacing_offset = tk.IntVar()
+        self._backing_spacing_offset.set(0)
+        self._backing_angle_offset = tk.IntVar()
+        self._backing_angle_offset.set(0)
 
 
         self.set_lists_default()
         self._backing_height.set(0)
         pass
 
-    def return_gui_frame(self):
-        subframe = tk.Frame()
-        title = tk.Label(subframe, text = "Workpiece Type: 'Generic, {0} pin'".format(self._num_pins))
-        pins = self._return_pins_frame(subframe)
-        params = self._paramiters_frame(subframe)
-        basic = self._return_basic_frame(subframe)
+    def _import_workpiece_types(self, data):
+        file_names = os.listdir(data)
+        index_paramiter = 0
+        index_paramiter_value = 1
+        index_well_num = 2
+        index_default_spacing = 3
+        index_well_codes = 4
+        index_height = 5
+        index_angle = 6
+        index_spacing_offset = 7
 
-        basic.grid(row = 0, column = 0, columnspan = 1, rowspan = 2)
-        title.grid(row = 0, column = 0, columnspan = 2)
-        pins.grid(row = 1, column = 1, columnspan = 2)
-        params.grid(row = 1, column = 3, sticky = 'W')
+        for file_name in file_names:
+            local_keyway = keyway()
+            try:
+                file = open(data + "/" + file_name, 'r')
+                line = file.readline()
+                print line
+                line = file.readline()
+                while line:
+                    line = line.split(",")
+                    print line
+                    local_keyway.paramiters.update({line[index_paramiter]:line[index_paramiter_value]})
+                    local_keyway.spacings.update({line[index_well_num]:line[index_default_spacing]})
+                    local_keyway.well_codes.update({line[index_well_codes]:[line[index_height],
+                                                                                line[index_angle],
+                                                                                line[index_spacing_offset]]})
+                    line = file.readline()
+
+                self._keyway_dict.update({local_keyway.paramiters["_name"]: local_keyway})
+            except Exception as e:
+                print "file exception: " + str(e)
+                self._handle_file_exception()
+
+    def _handle_file_exception(self,e):
+        pass
+
+    def return_gui_frame(self, master, mode):
+        subframe = tk.Frame(master)
+        basic = self.basic_frame(subframe)
+        advanced = self.advanced_frame(subframe)
+
+        basic.grid(row = 0, column = 0)
+        if mode: advanced.grid(row = 0, column = 1)
         return subframe
 
-    def _return_basic_frame(self, master):
+    def basic_frame(self, master):
         subframe = tk.Frame(master)
         stock_label = tk.Label(subframe, text = "Type: ")
-        stock = tk.OptionMenu(subframe, self._backing_type, "default", "test")
-        stock.config(width = 12)
+        print list(self._keyway_dict.keys())
+        stock = tk.OptionMenu(subframe,
+                              self._backing_type,
+                              *list(self._keyway_dict.keys()),
+                              command = lambda x: self._set_new_type(self._keyway_dict[self._backing_type.get()]))
+        stock.config(width = 19)
         code = self._return_label_entry(subframe,
                                         "Code: ",
                                         self._backing_code,
-                                        width = 18)
+                                        width = 25)
         save = tk.Button(subframe, text = "Save",
-                         width = 20,
+                         width = 27,
                          command = self._save_code)
         run = tk.Button(subframe,
                         text = "Run",
-                        width = 20)
+                        width = 27)
 
 
         stock_label.grid(row = 0, column = 0)
@@ -76,18 +130,38 @@ class generic():
         run.grid(row = 3, column = 0, columnspan = 2)
         return subframe
 
-    def _paramiters_frame(self, master):
+    def advanced_frame(self, master):
         subframe = tk.Frame(master)
+        title = tk.Label(subframe, text = "Workpiece Type: 'Generic, {0} pin'".format(self._num_pins))
+        pins = self._return_pins_frame(subframe)
+        params = self._paramiters_frame(subframe)
+        offsets = self.offset_frame(subframe)
+
+        title.grid(row = 0, column = 0, columnspan = 2)
+        pins.grid(row = 1, column = 1, columnspan = 2)
+        offsets.grid(row = 1, column = 3, columnspan = 1)
+        params.grid(row = 1, column = 4, sticky = 'W')
+
+        return subframe
+
+    def _paramiters_frame(self, master):
+        subframe = tk.Frame(master, padx = 20)
+        title = tk.Label(subframe, text = "General Parameters")
         height = self._return_label_entry(subframe,
                                           "Stock Height",
                                           self._backing_height)
         num_pins = self._return_label_entry(subframe,
                                             "# Pins",
                                             self._backing_num_pins)
+        safe_z = self._return_label_entry(subframe,
+                                          "Safe Height",
+                                          self._backing_safe_z)
 
 
-        height.grid(row = 0, column = 0)
-        num_pins.grid(row = 0, column = 1)
+        title.grid(row = 0, column = 0, sticky = 'N')
+        height.grid(row = 1, column = 0, sticky = 'E')
+        num_pins.grid(row = 2, column = 0, sticky = 'E')
+        safe_z.grid(row = 3, column = 0, sticky = 'E')
 
         return subframe
 
@@ -138,6 +212,30 @@ class generic():
             angle.grid(row = 3, column = i + 1)
             spacing.grid(row = 2, column = i + 1)
 
+        return subframe
+
+    def offset_frame(self, master):
+        """
+        This creates a frame containing an entry for each of the:
+        global angle offset, global depth offset, global spacing offset.
+        This frame should only be shown when the GUI is in advanced mode.
+        :param master: Tkinter frame for advanced mode.
+        :return: subframe containing offset entries.
+        """
+        subframe = tk.Frame(master)
+        title = tk.Label(subframe,
+                         text = "Offsets")
+        depth = tk.Entry(subframe,
+                         textvariable = self._backing_depth_offset)
+        spacing = tk.Entry(subframe,
+                           textvariable = self._backing_spacing_offset)
+        angle = tk.Entry(subframe,
+                         textvariable = self._backing_angle_offset)
+
+        title.grid(row = 0, column = 0, pady = 0)
+        depth.grid(row = 1, column = 0, pady = 1)
+        spacing.grid(row = 2, column = 0, pady = 1)
+        angle.grid(row = 3, column = 0, pady = 1)
         return subframe
 
     def set_lists_default(self):
@@ -197,7 +295,6 @@ class generic():
         for string in array:
             print string
 
-
     def _convert_tk_array(self, tk_array):
         """
         Takes an array of TK vars, and generates an array containing there
@@ -210,6 +307,11 @@ class generic():
         for i in range(0, self._num_pins):
             array.append(tk_array[i].get())
         return array
+
+    def _set_new_type(self, type):
+        self._backing_num_pins.set(type.paramiters["_num_pins"])
+        self._backing_safe_z.set(type.paramiters["_safe_Z"])
+        self._feed_rate_cut = type.paramiters["_feed_rate_cut"]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -312,7 +414,6 @@ class generic():
         # Positioned at _safe_z above well. A = 0.
         return command_list
 
-
     def _controlled_move(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
         """
         Generates a string corresponding to a single G1 command. This function
@@ -362,3 +463,27 @@ class generic():
         :return:
         """
         return "G91"
+
+class keyway ():
+    def __init__(self,):
+        self.paramiters = {}
+        self.spacings = {}
+        self.well_codes = {}
+        self.well_code_length = 0
+
+    def return_defaults(self):
+        """
+        :return:
+        """
+        pass
+
+    def return_from_code(self, code):
+        """
+        Takes the input code and returns the corresponding set of depths,
+        spacings and angles.
+
+        If an invalid code block is found an error will be thrown which should
+        be caught internally.
+        :param code:
+        :return:
+        """

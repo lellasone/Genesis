@@ -31,6 +31,7 @@ class generic():
     _G30 = {1000, 0, 0} #G30 reletive to bottom of workpiece sholder stop
 
     def __init__(self):
+        self._GUI_mode = False
         self._import_workpiece_types(self._data_folder)
         self.current_keyway = self._keyway_dict[self._default_type]
         self._backing_type = tk.StringVar()  #Stores the current model metal stock.
@@ -52,9 +53,8 @@ class generic():
         self._backing_angle_offset = tk.IntVar()
         self._backing_angle_offset.set(0)
 
-
-        self.set_lists_default()
         self._backing_height.set(0)
+        self._set_new_type(self.current_keyway)
         pass
 
     def _import_workpiece_types(self, data):
@@ -94,13 +94,14 @@ class generic():
         pass
 
     def return_gui_frame(self, master, mode):
-        subframe = tk.Frame(master)
-        basic = self.basic_frame(subframe)
-        advanced = self.advanced_frame(subframe)
+        self.subframe = tk.Frame(master)
+        basic = self.basic_frame(self.subframe)
+        self.advanced_frame = self.generate_advanced_frame(self.subframe)
 
         basic.grid(row = 0, column = 0)
-        if mode: advanced.grid(row = 0, column = 1)
-        return subframe
+        if mode: self.advanced_frame.grid(row = 0, column = 1)
+        self._GUI_mode = True
+        return self.subframe
 
     def basic_frame(self, master):
         subframe = tk.Frame(master)
@@ -130,7 +131,7 @@ class generic():
         run.grid(row = 3, column = 0, columnspan = 2)
         return subframe
 
-    def advanced_frame(self, master):
+    def generate_advanced_frame(self, master):
         subframe = tk.Frame(master)
         title = tk.Label(subframe, text = "Workpiece Type: 'Generic, {0} pin'".format(self._num_pins))
         pins = self._return_pins_frame(subframe)
@@ -247,13 +248,18 @@ class generic():
                                                        self._num_pins,
                                                        self._DEFAULT_ANGLE)
 
-        self._backing_well_spacings = self.generate_list(self._backing_well_spacings,
-                                                         self._num_pins,
-                                                         self._DEFAULT_SPACING)
-
         self._backing_well_depths = self.generate_list(self._backing_well_depths,
                                                        self._num_pins,
                                                        self._DEFAULT_DEPTH)
+        # set default spacings for this keyway
+
+        for i in sorted(self.current_keyway.spacings.keys()):
+            if i.isdigit():
+                print i
+                real_spacing = self.current_keyway.spacings[i]
+                temp = tk.IntVar()
+                temp.set(real_spacing)
+                self._backing_well_spacings.append(temp)
 
     def generate_list(self, list, length, value):
         for i in range(0, length):
@@ -309,9 +315,15 @@ class generic():
         return array
 
     def _set_new_type(self, type):
+        self.current_keyway = type
         self._backing_num_pins.set(type.paramiters["_num_pins"])
+        self._num_pins = int(type.paramiters["_num_pins"])
         self._backing_safe_z.set(type.paramiters["_safe_Z"])
         self._feed_rate_cut = type.paramiters["_feed_rate_cut"]
+        self.set_lists_default()
+        if self._GUI_mode:
+            self.advanced_frame.destroy()
+            self.advanced_frame = self.generate_advanced_frame(self.subframe)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -487,3 +499,4 @@ class keyway ():
         :param code:
         :return:
         """
+        

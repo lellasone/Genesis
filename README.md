@@ -1,7 +1,8 @@
 # Genesis
 Control Code for CNC Profile Cutter
 
-
+GCode:
+    Genesis impliments a very stripped down version of standard GCode. Commands which are garenteed to work are listed below. Unless otherwise noted "M" commands will be executed imediatly upon recipt while "G" commands are stored in a queue and executed sequentially by the mill. All commands should be sent in the format "Gn, (args)" where the args are comma delinated, but not order sensative. 
     Implimented GCode commands: 
         G1 - "G1, Xn, Zn, An, Fn"   Controlled move, sets new cordiantess (absolute or reletive depending setting). Note, that the feedrate is applied
                                     to each axis independently of the others. 

@@ -41,7 +41,7 @@ class generic():
         self._backing_num_pins = tk.IntVar()
         self._backing_num_pins.set(self._num_pins)
         self._backing_code = tk.StringVar()
-        self._backing_code.set(" ")
+        self._backing_code.set("")
         self._backing_safe_z = tk.IntVar()
         self._backing_safe_z.set(self._safe_Z)
 
@@ -115,10 +115,11 @@ class generic():
         code = self._return_label_entry(subframe,
                                         "Code: ",
                                         self._backing_code,
-                                        width = 25)
+                                        width = 25,
+                                        callback = lambda x: self.translate_code(self._backing_code.get()))
         save = tk.Button(subframe, text = "Save",
                          width = 27,
-                         command = self._save_code)
+                         command = self._save_program)
         run = tk.Button(subframe,
                         text = "Run",
                         width = 27)
@@ -251,8 +252,9 @@ class generic():
         self._backing_well_depths = self.generate_list(self._backing_well_depths,
                                                        self._num_pins,
                                                        self._DEFAULT_DEPTH)
-        # set default spacings for this keyway
-
+        # set default spacings for this keyway this will actually work with non-numeric
+        # designators, but I don't recommend it. Still, it's for the advanced mode so I
+        # don't see any harm in keeping things this way if its going to be useful.
         for i in sorted(self.current_keyway.spacings.keys()):
             if i.isdigit():
                 print i
@@ -260,6 +262,17 @@ class generic():
                 temp = tk.IntVar()
                 temp.set(real_spacing)
                 self._backing_well_spacings.append(temp)
+
+    def set_lists_new(self, spacings, heights, angles):
+        print spacings
+        for i in range(0, len(spacings)):
+            self._backing_well_spacings[i].set(spacings[i])
+
+        for i in range(0, len(heights)):
+            self._backing_well_depths[i].set(heights[i])
+
+        for i in range(0, len(angles)):
+            self._backing_well_angles[i].set(angles[i])
 
     def generate_list(self, list, length, value):
         for i in range(0, length):
@@ -271,15 +284,15 @@ class generic():
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Callbacks:
 
-    def _save_code(self):
+    def _save_program(self):
         self._take_snapshot()
         code = self.generate(self._well_depths, self._well_angles, self._well_spacings)
         name = tkFileDialog.asksaveasfilename(defaultextension='.txt')
 
         self._print_array(code)
-        self._write_code_file(name, code)
+        self._write_program_file(name, code)
 
-    def _write_code_file(self, name, code):
+    def _write_program_file(self, name, code):
         try:
             file = open(name, 'w')
             for line in code:
@@ -325,6 +338,37 @@ class generic():
             self.advanced_frame.destroy()
             self.advanced_frame = self.generate_advanced_frame(self.subframe)
 
+    def translate_code(self, code):
+        try:
+            print code
+            spacings, heights, angles = self.current_keyway.return_from_code(code)
+            self.set_lists_new(spacings, heights, angles)
+
+        except (config_exception, input_exception) as e:
+            self._handle_exception(e)
+
+    def _handle_exception(self, text):
+        """
+        This function generates a notification window with two buttons and a message. One button
+        kills the message, the other kills the program. This is intended as a way to handle exceptions
+        steming either from incorrect user inputs or incorrect user configuration.
+
+        Buttons:
+            Okay - Do nothing and ignore the error.
+            Kill - Closes the program.
+        :param text: String, describing the error encountered.
+        :return:
+        """
+        frame = tk.Tk()
+        title = tk.Label(frame, text = "WARNING:")
+        text = tk.Label(frame, text = text)
+        ignore = tk.Button(frame, text = "Continue", command = frame.destroy)
+        kill = tk.Button(frame, text = "Kill Program", command = exit)
+
+        title.pack()
+        text.pack()
+        ignore.pack()
+        kill.pack()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Script:
@@ -352,12 +396,12 @@ class generic():
 
         command_list.extend(self.generate_start_code())
         for i in range(0, self._num_pins):
-            depth = self._workpiece_height - well_heights[i]
+            height = self._workpiece_height - well_heights[i]
             if i == 0:
                 spacing = well_spacings[i]
             else:
                 spacing = well_spacings[i] - well_spacings[i-1]
-            command_list.extend(self.generate_pin_codes(depth,
+            command_list.extend(self.generate_pin_codes(height,
                                                         well_angles[i],
                                                         spacing))
 
@@ -382,7 +426,7 @@ class generic():
         command_list.append(self._resume_execution()) #start program run
         return command_list
 
-    def generate_pin_codes(self, depth, angle, spacing):
+    def generate_pin_codes(self, height, angle, spacing):
         """
         This function returns a list of the G-Codes required to cut the well
         specified.
@@ -390,7 +434,7 @@ class generic():
                        at zero.
         Post-Condition: _save_z directly above current well with angle at zero
                         and the current well cut.
-        :param depth: How deep to make the well in thou
+        :param height: How deep to make the well in thou
         :param angle: how much to turn the A axis in degrees eletive to X
                       perpendicular to the plane of the cutting disk.
         :param spacing: How far along the work-piece the current well is from
@@ -410,12 +454,12 @@ class generic():
                                                   self._feed_rate_move))
         # Positioned above current well at top of piece. A = Angle.
         command_list.append(self._controlled_move(0,
-                                                  -1 * depth,
+                                                  -1 * height,
                                                   0,
                                                   self._feed_rate_cut))
         # Positioned at the bottom of the well. A = Angle.
         command_list.append(self._controlled_move(0,
-                                                  self._safe_Z - (self._workpiece_height - depth),
+                                                  self._safe_Z - (self._workpiece_height - height),
                                                   0,
                                                   self._feed_rate_move))
         # Positioned at _safe_z above well. A = Angle.
@@ -477,6 +521,9 @@ class generic():
         return "G91"
 
 class keyway ():
+    index_spacing = 1
+    index_height = 0
+    index_angle = 2
     def __init__(self,):
         self.paramiters = {}
         self.spacings = {}
@@ -499,4 +546,35 @@ class keyway ():
         :param code:
         :return:
         """
-        
+        spacings = []
+        angles = []
+        heights = []
+        num_pins = int(self.paramiters["_num_pins"])
+        seg_length = int(self.paramiters["_segement_length"])
+
+        if num_pins < (len(code) / seg_length):
+            raise input_exception("Code may not exceed {0} pins in length".format(num_pins))
+
+        for i in range (0, len(code) / seg_length):
+            seg = code[:seg_length]
+            code = code[seg_length:]
+            spacings.append(int(self.spacings[str(i + 1)]))
+            heights.append(0)
+            angles.append(0)
+            for a in seg:
+                if a not in self.well_codes.keys():
+                    raise input_exception('Charicter "{0}" is not valid for this keyway'.format(a))
+                print self.well_codes[a]
+                spacings[i] += int(self.well_codes[a][self.index_spacing])
+                heights[i] += int(self.well_codes[a][self.index_height])
+                angles[i] += int(self.well_codes[a][self.index_angle])
+        print heights
+        return spacings, heights, angles
+
+class input_exception(Exception):
+    #exceptions due bad user input.
+    pass
+
+class config_exception(Exception):
+    #exceptions due to bad user config.
+    pass

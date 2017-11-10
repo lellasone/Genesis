@@ -1,7 +1,7 @@
 Paramiters,Paramiter Values,well number,default spacing,well code,height,angle,spacing offset
 _num_pins,6,1,244,1,271,0,0
 _name,Sargent - DG1,2,414,2,241,0,0
-_workpiece_height,0.307,3,584,3,211,0,0
+_workpiece_height,307,3,584,3,211,0,0
 _safe_Z,100,4,754,4,181,0,0
 _feed_rate_cut,2,5,924,5,151,0,0
 _default_code,111111,6,1094,6,121,0,0

@@ -12,9 +12,9 @@
 #include <time.h>;
 #include "PINS.h"
 
-int  CurrentX = 0;    // Current location is stored as an offset (in steps) from 
-int  CurrentZ = 0;    // The zero point (touch both limit switches with C at 180
-int  CurrentC = 0;    // degrees, fully virtical).
+long  CurrentX = 0;    // Current location is stored as an offset (in steps) from 
+long  CurrentZ = 0;    // The zero point (touch both limit switches with C at 180
+long  CurrentC = 0;    // degrees, fully virtical).
 
 long  TargetX  = 0;    // The location to which each of the axis is moving. Stored
 long  TargetZ  = 0;    // as an offset "in steps" from the zero point of that axis. 
@@ -28,11 +28,12 @@ int  TimeX = 10;
 int  TimeZ = 10;
 int  TimeC = 10;
 
-int Current[] = {0,0,0};
-long Target[] = {0,0,0};
-long Timer[]  = {0,0,0};
-bool reverse[]  = {REVERSE_X, REVERSE_Z, REVERSE_C};
-int Time[] = {0,0,0};
+long Current[] = {0,0,0};
+long Target[]  = {0,0,0};
+long Timer[]   = {0,0,0};
+int  Time[]    = {0,0,0};
+bool reverse[] = {REVERSE_X, REVERSE_Z, REVERSE_C};
+
 
 int  localMicros = 0;
 int  SpeedS = 0;     // cutter speed as a percentage.
@@ -73,9 +74,9 @@ boolean update_stepper(int i, int Pinpulse, int pinDirection){
 
   // It's time for a pulse.
   digitalWrite(Pinpulse, LOW);
-  delayMicroseconds(10); 
+  delayMicroseconds(5); 
   digitalWrite(Pinpulse, HIGH);
-  delayMicroseconds(10); 
+  delayMicroseconds(5); 
   // update timer variable. 
   Timer[i] -= Time[i];
   return true;

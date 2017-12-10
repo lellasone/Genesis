@@ -38,7 +38,7 @@
 #define CIN 2
 
 // G30 location. 
-#define G30X 2000   //thou
+#define G30X 2800   //thou
 #define G30Z 100   //thou
 #define G30C 110   //degrees
 
@@ -49,9 +49,9 @@
 #define Converstion_Speed_X  1// s/mm to milliseconds per step.
 #define Converstion_Speed_C  1// s/mm to milliseconds per step.
 
-#define Conversion_Displacment_X 20.6896551724 // Steps per mm
-#define Conversion_Displacment_Z 20.6896551724 // Steps per mm
-#define Conversion_Displacment_C 59.2          // Steps per Degree
+#define Conversion_Displacment_X 20.6896551724L // Steps per mm
+#define Conversion_Displacment_Z 20.6896551724L // Steps per mm
+#define Conversion_Displacment_C 59.2L          // Steps per Degree
 
 #define REVERSE_Z false
 #define REVERSE_X false

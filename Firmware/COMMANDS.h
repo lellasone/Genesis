@@ -73,13 +73,13 @@ void G1::execute (){
   Serial.println(String(New_C));
   // Set new target locations. 
   if (absolute){
-    Target[ZIN] = int(New_Z * Conversion_Displacment_Z);
-    Target[XIN] = int(New_X * Conversion_Displacment_X);
-    Target[CIN] = int(New_C * Conversion_Displacment_C);
+    Target[ZIN] = long(New_Z * Conversion_Displacment_Z);
+    Target[XIN] = long(New_X * Conversion_Displacment_X);
+    Target[CIN] = long(New_C * Conversion_Displacment_C);
   } else {
-    Target[ZIN] += int(New_Z * Conversion_Displacment_Z);
-    Target[XIN] += int(New_X * Conversion_Displacment_X);
-    Target[CIN] += int(New_C * Conversion_Displacment_C);
+    Target[ZIN] += long(New_Z * Conversion_Displacment_Z);
+    Target[XIN] += long(New_X * Conversion_Displacment_X);
+    Target[CIN] += long(New_C * Conversion_Displacment_C);
   }
 
   // Set new speeds. 
@@ -141,9 +141,9 @@ G30::G30(){
 
 void G30::execute (){
   // Set new target locations. 
-  Target[ZIN] = int(New_Z);
-  Target[XIN] = int(New_X);
-  Target[CIN] = int(New_C);
+  Target[ZIN] = long(New_Z);
+  Target[XIN] = long(New_X);
+  Target[CIN] = long(New_C);
 
   // Set new speeds. 
   Time[ZIN] = New_F * Converstion_Speed_Z;

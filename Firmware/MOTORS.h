@@ -8,7 +8,7 @@
  */
 
 // Motor Data:
-
+#include <Servo.h>
 #include <time.h>;
 #include "PINS.h"
 
@@ -17,7 +17,7 @@ int  CurrentZ = 0;    // The zero point (touch both limit switches with C at 180
 int  CurrentC = 0;    // degrees, fully virtical).
 
 long  TargetX  = 0;    // The location to which each of the axis is moving. Stored
-long  TargetZ  = 800;    // as an offset "in steps" from the zero point of that axis. 
+long  TargetZ  = 0;    // as an offset "in steps" from the zero point of that axis. 
 long  TargetC  = 0;    // 
 
 long  TimerX = 0;
@@ -33,13 +33,14 @@ long Target[] = {0,0,0};
 long Timer[]  = {0,0,0};
 int Time[] = {0,0,0};
 
-int  localMillis = 0;
+int  localMicros = 0;
 int  SpeedS = 0;     // cutter speed as a percentage.
-
+Servo spindle;
+  
 void updateTimers(){
    
-   int difference = millis() - localMillis;
-   localMillis = millis();
+   int difference = micros() - localMicros;
+   localMicros = micros();
    Timer[XIN] += difference;
    Timer[ZIN] += difference;
    Timer[CIN] += difference;
@@ -71,9 +72,9 @@ boolean update_stepper(int i, int Pinpulse, int pinDirection){
 
   // It's time for a pulse.
   digitalWrite(Pinpulse, LOW);
-  delayMicroseconds(10); 
-  Serial.println("Pulse");
+  delayMicroseconds(40); 
   digitalWrite(Pinpulse, HIGH);
+  delayMicroseconds(40); 
   // update timer variable. 
   Timer[i] -= Time[i];
   return true;
@@ -96,6 +97,9 @@ boolean  updateC(){
 }
 
 boolean  updateS(){
+  int spindleSpeed = SpeedS;
+  spindleSpeed = map(spindleSpeed, 0, 100, 100, 2000);
+  spindle.writeMicroseconds(spindleSpeed);
   return true;
 }
 

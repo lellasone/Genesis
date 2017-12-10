@@ -13,6 +13,7 @@ void commandStop(){
   TargetX = CurrentX;
   TargetZ = CurrentZ;
   TargetC = CurrentC;
+  SpeedS = 0;
   
   //clear command queue
   while (!CommandQueue.isEmpty()){

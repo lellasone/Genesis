@@ -521,9 +521,9 @@ class generic():
         return "G91"
 
 class keyway ():
-    index_spacing = 1
+    index_spacing = 2
     index_height = 0
-    index_angle = 2
+    index_angle = 1
     def __init__(self,):
         self.paramiters = {}
         self.spacings = {}

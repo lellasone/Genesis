@@ -29,7 +29,9 @@ void setup() {
   // put your setup code here, to run once:
   setupX();
   setupZ();
+  setupS();
   setupC();
+  runQueue = true;
   Serial.begin(115200);
   Serial.setTimeout(TIMEOUT);
   Serial.println("Serial Ready");
@@ -42,6 +44,7 @@ void setupX(){
   digitalWrite(PIN_Z_ENABLE, HIGH);
   pinMode(PIN_X_DIRECTION, OUTPUT);
   pinMode(PIN_X_PULSE, OUTPUT);
+  pinMode(PIN_X_ENDSTOP, OUTPUT);
 }
 void setupZ(){
   // enable stepper motor driver. 
@@ -49,20 +52,25 @@ void setupZ(){
   digitalWrite(PIN_Z_ENABLE, HIGH);
   pinMode(PIN_Z_DIRECTION, OUTPUT);
   pinMode(PIN_Z_PULSE, OUTPUT);
+  pinMode(PIN_Z_ENDSTOP, OUTPUT);
+}
+
+void setupS(){
+  pinMode(PIN_S, OUTPUT);
+  spindle.attach(PIN_S);
+  spindle.writeMicroseconds(1000);
 }
 
 void setupC(){
-  // enable stepper motor driver. 
+  // enable stepper motor driver. This shoudl be called last of the setup functions. 
   pinMode(PIN_C_ENABLE, OUTPUT);
   digitalWrite(PIN_C_ENABLE, HIGH);
   pinMode(PIN_C_DIRECTION, OUTPUT);
   pinMode(PIN_C_PULSE, OUTPUT);
-  runQueue = true;
+  pinMode(PIN_C_ENDSTOP, OUTPUT);
 }
 
-
-
-void loop() {
+void loop(){
   if (!CommandQueue.isEmpty() && runQueue){
     GCommand *command = getNewCommand();
     command->execute();
@@ -71,6 +79,7 @@ void loop() {
       updateMotors();
     }
   } else {
+    updateMotors();
     delay(1);
   }
 }
@@ -148,6 +157,18 @@ GCommand * process_G(String command[]){
       newCommand = new G91();
       break;
     }
+    case 28:{
+      Serial.println("Processing G28");
+      newCommand = new G28();
+      break;
+    }
+    case 99:{
+      Serial.println("Processing G99");
+      int S = getArg(command, 'S', 2);
+      Serial.println(S);
+      newCommand = new G99(S);
+      break;
+    }
   }
    return(newCommand);
 }
@@ -165,7 +186,6 @@ long getArg(String command[], char arg, int len){
  */
 
  for(int i = 0; i < len; i++){
-   Serial.println(command[i][1]);
   if(command[i][0] == arg){
     return command[i].substring(1).toInt();
   }
@@ -221,4 +241,5 @@ int asciiToInt(String num){
     
    return finalNum;
 }
+
 

@@ -118,7 +118,7 @@ bool G1::hold (){
 
 class G30 : public GCommand{
   /* 
-   *  Fast movee command to a position 1 inch directly above the bottom of the vice,
+   *  Fast move command to a position 1 inch directly above the bottom of the vice,
    *  at the the sholder-stop of the workpiece with angle = 0. This is used to establish
    *  a consistent location reletive to the work-piece for reletive move commands. 
    *  
@@ -244,3 +244,159 @@ bool G91::hold (){
   return false;
 }
 
+
+class G28 : public GCommand{
+  /* 
+   *  
+   *  
+   *  The command is in the format:
+   *    G28
+   */
+  bool touch_x;
+  bool touch_z;
+  bool touch_c;
+  bool release_x;
+  bool release_z;
+  bool release_c;
+  private:
+    bool touchAndRelease(int, int, double);
+  public:
+    G28();
+    void execute();
+    bool hold();
+ };
+  
+G28::G28(){
+  touch_x = false;
+  touch_z = false;
+  touch_c = false;
+  release_x = false;
+  release_z = false;
+  release_c = false;
+}
+
+void G28::execute (){
+  Time[ZIN] = HOME_SPEED * Converstion_Speed_Z;
+  Time[XIN] = HOME_SPEED * Converstion_Speed_X;
+  Time[CIN] = HOME_SPEED * Converstion_Speed_C;
+  Target[XIN] = Current[XIN];
+  Target[CIN] = Current[CIN];
+  Target[ZIN] = Current[ZIN];
+}
+
+bool G28::hold (){
+  /*
+   * This function is called repeatedly to check whether the command has 
+   * been completed.
+   * 
+   * Returns: True if incomplete, False if complete. 
+   */
+   // move each axis until it touches it's limit switch.  
+  if (!touch_x){
+    if (digitalRead(PIN_X_ENDSTOP)){
+      Current[XIN] = Target[XIN];
+      touch_x = true;
+    } else {
+      if (Current[XIN] <= Target[XIN]){
+        Serial.println("Test");
+        Target[XIN] -= int(HOME_STEP * Conversion_Displacment_X);
+      }
+    }
+  }
+  
+  if (!touch_z){
+    if (digitalRead(PIN_Z_ENDSTOP)){
+      Target[ZIN] = Current[ZIN];
+      touch_z = true;
+    } else {
+      Serial.println("Ping");
+      if (Current[ZIN] <= Target[ZIN]){
+        Target[ZIN] -= int(HOME_STEP * Conversion_Displacment_Z);
+      }
+    }
+  }
+  
+  if (!touch_c){
+    if (digitalRead(PIN_C_ENDSTOP)){
+      Current[CIN] = Target[CIN];
+      touch_c = true;
+    } else {
+      if (Current[CIN] != Target[CIN]){
+        Target[CIN] -= int(HOME_STEP * Conversion_Displacment_C);
+      }
+    }
+  }
+  
+  // move each axis until the respective limit switch has been released. 
+  
+  if (touch_x && !release_x){
+    release_x = touchAndRelease(XIN, PIN_X_ENDSTOP, Conversion_Displacment_X);
+  }
+  
+  if (touch_z && !release_z){
+    release_z = touchAndRelease(ZIN, PIN_Z_ENDSTOP, Conversion_Displacment_Z);
+  }
+
+  if (touch_c && !release_c){
+    release_c = touchAndRelease(CIN, PIN_C_ENDSTOP, Conversion_Displacment_C);
+  }
+    
+  if (release_c && release_x && release_z){
+    Serial.println("Homing Complete");
+    return false;
+  } else {
+    return true;
+  }
+}
+
+bool G28::touchAndRelease(int index, int endstopPin, double displacment){
+    if (!digitalRead(endstopPin)){
+      Current[index] = 0;
+      Target[index] = Current[index];
+      return(true);
+    } else {
+      if (Current[ZIN] = Target[ZIN]){
+        Target[index] += int(HOME_STEP * displacment);
+      }
+      return(false);
+    }
+  }
+
+class G99 : public GCommand{
+  /* 
+   *  Sets the speed of the spindle as a value from 0-100. Values outside of that range
+   *  will be ignored and an emergency stop command will be called. 
+   *  
+   *  The command is in the format:
+   *    G99 Sn Where n is a value between 0 - 100
+   */
+  int newSpeed; 
+  public:
+    G99(int);
+    void execute();
+    bool hold();
+ };
+  
+G99::G99(int Speed){
+  Serial.println(Speed);
+  if( Speed > 100 || Speed < 0){
+    Serial.print("Spindle Speed is Invalid: ");
+    Serial.println(Speed);
+    commandStop;
+  }
+  newSpeed = Speed;
+}
+
+void G99::execute (){
+  SpeedS = newSpeed; 
+}
+
+bool G99::hold (){
+  /*
+   * This function is called repeatedly to check whether the command has 
+   * been completed. This will alwasy be false.
+   * 
+   * Returns: True if incomplete, False if complete. 
+   */
+  return false;
+}

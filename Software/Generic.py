@@ -169,7 +169,7 @@ class generic():
 
     def _return_label_entry(self, master, text, textVar , callback = "null", width = 15):
         """
-        Conveniece function for generating a single frame with a label and
+        Convenience function for generating a single frame with a label and
         entry.
         :param master: TK instance.
         :param text: The text for the label.
@@ -187,7 +187,7 @@ class generic():
     def _return_pins_frame(self, master):
         """
         This creates the Pins sub-frame. It holds the Entry objects for the angle
-        depth, and spacing (distancce from previous) for each pin as well as
+        depth, and spacing (distance from previous) for each pin as well as
         associated labels. This method should be over-written by custom workpiece
         script classes.
 
@@ -252,7 +252,7 @@ class generic():
         self._backing_well_depths = self.generate_list(self._backing_well_depths,
                                                        self._num_pins,
                                                        self._DEFAULT_DEPTH)
-        # set default spacings for this keyway this will actually work with non-numeric
+        # Set default spacings for this keyway. This will actually work with non-numeric
         # designators, but I don't recommend it. Still, it's for the advanced mode so I
         # don't see any harm in keeping things this way if its going to be useful.
         for i in sorted(self.current_keyway.spacings.keys()):
@@ -316,7 +316,7 @@ class generic():
 
     def _convert_tk_array(self, tk_array):
         """
-        Takes an array of TK vars, and generates an array containing there
+        Takes an array of TK vars, and generates an array containing their
         corresponding values.
         :param tk_array:
         :param array:
@@ -374,21 +374,21 @@ class generic():
 # Script:
     def generate(self, well_heights, well_angles, well_spacings):
         """
-        This function is responcible for generating a complete G-Code program
+        This function is responsible for generating a complete G-Code program
         for the specified angles, heights, and spacings. The resultant spacing
         program includes the start and end code specified in those functions,
         and is intended to be run as a block.
         :param well_heights: an int array giving the height of each well as
                              measured from the base of the workpiece to the
                              bottom of the desired cut.
-        :param well_angles:   an int array specifying the angle of each cut in
+        :param well_angles:  an int array specifying the angle of each cut in
                              degrees. At zero the cutter is perpendicular to
                              the work piece. Positive angles will result in
                              counterclockwise rotation.
         :param well_spacings: An int array specifying the gap between the
                              previous cutter location and the new well.
                              Spacings are assumed to be given as absolute values
-                             in thou, reletive to the workpiece sholder.
+                             in thou, relative to the workpiece sholder.
         :return: An array containing the commands for a single complete piece.
         """
         command_list = []
@@ -495,7 +495,7 @@ class generic():
     def _resume_execution(self):
         """
         Generates the string corresponding to a resume execution command. The
-        command queue will resume execution imediatly upon recipt of this
+        command queue will resume execution immediately upon reciept of this
         command.
         :return: string
         """
@@ -503,7 +503,7 @@ class generic():
 
     def _set_absolute(self):
         """
-        generates the string corresponding to a set absolute command. This will
+        Generates the string corresponding to a set absolute command. This will
         be added be added to the command queue, and, when executed, will cause
         subsequent move commands to be interpreted reletive to machine zero.
         :return: String
@@ -512,8 +512,8 @@ class generic():
 
     def _set_relative(self):
         """
-        generates the string corresponding to a set relative command. This will
-        be added to the command queue and, when executed, will cause subsequnet
+        Generates the string corresponding to a set relative command. This will
+        be added to the command queue and, when executed, will cause subsequent
         move commands to be interpreted relative to the machine position when
         they are executed.
         :return:
@@ -572,7 +572,7 @@ class keyway ():
         return spacings, heights, angles
 
 class input_exception(Exception):
-    #exceptions due bad user input.
+    #exceptions due to bad user input.
     pass
 
 class config_exception(Exception):

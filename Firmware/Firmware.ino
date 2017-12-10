@@ -44,7 +44,7 @@ void setupX(){
   digitalWrite(PIN_Z_ENABLE, HIGH);
   pinMode(PIN_X_DIRECTION, OUTPUT);
   pinMode(PIN_X_PULSE, OUTPUT);
-  pinMode(PIN_X_ENDSTOP, OUTPUT);
+  pinMode(PIN_X_ENDSTOP, INPUT);
 }
 void setupZ(){
   // enable stepper motor driver. 
@@ -52,7 +52,7 @@ void setupZ(){
   digitalWrite(PIN_Z_ENABLE, HIGH);
   pinMode(PIN_Z_DIRECTION, OUTPUT);
   pinMode(PIN_Z_PULSE, OUTPUT);
-  pinMode(PIN_Z_ENDSTOP, OUTPUT);
+  pinMode(PIN_Z_ENDSTOP, INPUT);
 }
 
 void setupS(){
@@ -67,7 +67,7 @@ void setupC(){
   digitalWrite(PIN_C_ENABLE, HIGH);
   pinMode(PIN_C_DIRECTION, OUTPUT);
   pinMode(PIN_C_PULSE, OUTPUT);
-  pinMode(PIN_C_ENDSTOP, OUTPUT);
+  pinMode(PIN_C_ENDSTOP, INPUT);
 }
 
 void loop(){

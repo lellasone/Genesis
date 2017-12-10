@@ -31,6 +31,7 @@ int  TimeC = 10;
 int Current[] = {0,0,0};
 long Target[] = {0,0,0};
 long Timer[]  = {0,0,0};
+bool reverse[]  = {REVERSE_X, REVERSE_Z, REVERSE_C};
 int Time[] = {0,0,0};
 
 int  localMicros = 0;
@@ -63,18 +64,18 @@ boolean update_stepper(int i, int Pinpulse, int pinDirection){
 
   // Time for pulse, set direction.
   if (Target[i] > Current[i]){
-    digitalWrite(pinDirection, HIGH);
+    digitalWrite(pinDirection, HIGH != reverse[i]);
     Current[i] += 1; // incriment location variable. 
   } else {
-    digitalWrite(pinDirection, LOW);
+    digitalWrite(pinDirection, LOW != reverse[i]);
     Current[i] -= 1; // decriment location variable. 
   }
 
   // It's time for a pulse.
   digitalWrite(Pinpulse, LOW);
-  delayMicroseconds(40); 
+  delayMicroseconds(10); 
   digitalWrite(Pinpulse, HIGH);
-  delayMicroseconds(40); 
+  delayMicroseconds(10); 
   // update timer variable. 
   Timer[i] -= Time[i];
   return true;
@@ -86,7 +87,6 @@ boolean  updateX(){
    */
   return(update_stepper(XIN, PIN_X_PULSE, PIN_X_DIRECTION));
 }
-
 
 boolean  updateZ(){
   return(update_stepper(ZIN, PIN_Z_PULSE, PIN_Z_DIRECTION));

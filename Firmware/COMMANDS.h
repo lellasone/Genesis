@@ -75,11 +75,11 @@ void G1::execute (){
   if (absolute){
     Target[ZIN] = int(New_Z * Conversion_Displacment_Z);
     Target[XIN] = int(New_X * Conversion_Displacment_X);
-    Target[CIN] = int(New_C);
+    Target[CIN] = int(New_C * Conversion_Displacment_C);
   } else {
     Target[ZIN] += int(New_Z * Conversion_Displacment_Z);
     Target[XIN] += int(New_X * Conversion_Displacment_X);
-    Target[CIN] += int(New_C);
+    Target[CIN] += int(New_C * Conversion_Displacment_C);
   }
 
   // Set new speeds. 
@@ -133,9 +133,9 @@ class G30 : public GCommand{
  };
   
 G30::G30(){
-  New_X = G30X;
-  New_Z = G30Z;
-  New_C = G30C;
+  New_X = G30X * Conversion_Displacment_X;
+  New_Z = G30Z * Conversion_Displacment_Z;
+  New_C = G30C * Conversion_Displacment_C;
   New_F = DEFAULT_MOVE_FEED;
 }
 
@@ -260,6 +260,7 @@ class G28 : public GCommand{
   bool release_c;
   private:
     bool touchAndRelease(int, int, double);
+    bool touch(int, int, double);
   public:
     G28();
     void execute();
@@ -278,7 +279,7 @@ G28::G28(){
 void G28::execute (){
   Time[ZIN] = HOME_SPEED * Converstion_Speed_Z;
   Time[XIN] = HOME_SPEED * Converstion_Speed_X;
-  Time[CIN] = HOME_SPEED * Converstion_Speed_C;
+  Time[CIN] = HOME_SPEED_C * Converstion_Speed_C;
   Target[XIN] = Current[XIN];
   Target[CIN] = Current[CIN];
   Target[ZIN] = Current[ZIN];
@@ -291,7 +292,26 @@ bool G28::hold (){
    * 
    * Returns: True if incomplete, False if complete. 
    */
-   // move each axis until it touches it's limit switch.  
+   // move each axis until it touches it's limit switch.
+  
+  Serial.print(digitalRead(PIN_X_ENDSTOP));
+  Serial.print(",");
+  Serial.print(digitalRead(PIN_Z_ENDSTOP));
+  Serial.print(",");
+  Serial.print(digitalRead(PIN_C_ENDSTOP));
+  Serial.print(",,");
+  Serial.print(touch_x);
+  Serial.print(",");
+  Serial.print(touch_z);
+  Serial.print(",");
+  Serial.print(touch_c);
+  Serial.print(",,");
+  Serial.print(release_x);
+  Serial.print(",");
+  Serial.print(release_z);
+  Serial.print(",");
+  Serial.println(release_c);
+
   if (!touch_x){
     if (digitalRead(PIN_X_ENDSTOP)){
       Current[XIN] = Target[XIN];
@@ -305,26 +325,11 @@ bool G28::hold (){
   }
   
   if (!touch_z){
-    if (digitalRead(PIN_Z_ENDSTOP)){
-      Target[ZIN] = Current[ZIN];
-      touch_z = true;
-    } else {
-      Serial.println("Ping");
-      if (Current[ZIN] <= Target[ZIN]){
-        Target[ZIN] -= int(HOME_STEP * Conversion_Displacment_Z);
-      }
-    }
+   touch_z = touch(ZIN, PIN_Z_ENDSTOP, Conversion_Displacment_Z);
   }
   
   if (!touch_c){
-    if (digitalRead(PIN_C_ENDSTOP)){
-      Current[CIN] = Target[CIN];
-      touch_c = true;
-    } else {
-      if (Current[CIN] != Target[CIN]){
-        Target[CIN] -= int(HOME_STEP * Conversion_Displacment_C);
-      }
-    }
+    touch_c = touch(CIN, PIN_C_ENDSTOP, Conversion_Displacment_C);
   }
   
   // move each axis until the respective limit switch has been released. 
@@ -355,12 +360,24 @@ bool G28::touchAndRelease(int index, int endstopPin, double displacment){
       Target[index] = Current[index];
       return(true);
     } else {
-      if (Current[ZIN] = Target[ZIN]){
+      if (Current[index] >= Target[index]){
         Target[index] += int(HOME_STEP * displacment);
       }
       return(false);
     }
   }
+
+bool G28::touch(int index, int endStopPin, double displacment){
+  if (digitalRead(endStopPin)){
+    Target[index] = Current[index];
+    return true;
+  } else {
+    if (Current[index] <= Target[index]){
+      Target[index] -= int(HOME_STEP * displacment);
+    }
+    return false;
+  }
+}
 
 class G99 : public GCommand{
   /* 

@@ -388,7 +388,7 @@ class generic():
         :param well_spacings: An int array specifying the gap between the
                              previous cutter location and the new well.
                              Spacings are assumed to be given as absolute values
-                             in thou, reletive to the workpiece sholder.
+                             in thou, relative to the workpiece shoulder.
         :return: An array containing the commands for a single complete piece.
         """
         command_list = []
@@ -415,6 +415,7 @@ class generic():
         """
         command_list = []
         command_list.append(self._pause_execution()) #start program record
+        command_list.append(self._home())
         command_list.append(self._set_relative())
         return command_list
 
@@ -430,12 +431,12 @@ class generic():
         """
         This function returns a list of the G-Codes required to cut the well
         specified.
-        Pre-Condition: _safe_z directly above the pervious well with the angle
+        Pre-Condition: _safe_z directly above the previous well with the angle
                        at zero.
         Post-Condition: _save_z directly above current well with angle at zero
                         and the current well cut.
         :param height: How deep to make the well in thou
-        :param angle: how much to turn the A axis in degrees eletive to X
+        :param angle: how much to turn the A axis in degrees ecletive to X
                       perpendicular to the plane of the cutting disk.
         :param spacing: How far along the work-piece the current well is from
                         the previous well or safe location.
@@ -488,7 +489,7 @@ class generic():
         Generates the string corresponding to a pause execution command. Once
         sent the command queue will immediately stop being executed (but will not
         be cleared)
-        :return: string
+        :return: String, GCommand.
         """
         return "M123"
 
@@ -497,7 +498,7 @@ class generic():
         Generates the string corresponding to a resume execution command. The
         command queue will resume execution imediatly upon recipt of this
         command.
-        :return: string
+        :return: String, GCommand.
         """
         return "M124"
 
@@ -506,19 +507,40 @@ class generic():
         generates the string corresponding to a set absolute command. This will
         be added be added to the command queue, and, when executed, will cause
         subsequent move commands to be interpreted reletive to machine zero.
-        :return: String
+        :return: String, GCommand.
         """
         return "G90"
 
     def _set_relative(self):
         """
         generates the string corresponding to a set relative command. This will
-        be added to the command queue and, when executed, will cause subsequnet
+        be added to the command queue and, when executed, will cause subsequent
         move commands to be interpreted relative to the machine position when
         they are executed.
-        :return:
+        :return: String, GCommand.
         """
         return "G91"
+
+    def _home(self):
+        """
+        Generates a string corresponding to a "home" command. This will move all
+        of the axis to the extreme low ends of their travel and then set the machine's
+        coordinates to 0.
+        :return: String, GCommand.
+        """
+        return "G28"
+
+    def _go_to_start(self):
+        """
+        Generates a string corresponding to the G30 command which moves the machine to
+        a known position relative to the workpiece. This position will be different on
+        each machine, but should always be:
+            1" above the bottom of the workpiece.
+            Directly above the shoulder stop.
+            cutter perpendicular to the workpiece.
+        :return: String, GCommand.
+        """
+        return "G30"
 
 class keyway ():
     index_spacing = 2

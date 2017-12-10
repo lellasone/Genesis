@@ -33,7 +33,9 @@ Keyway File Format:
     
     Spacing: 
         #TODO: finish this section. 
-        
+        Spacing is stored as a dictionary in the form {well_num: spacing_value}.
+        Spacings are stored in the appropriate .csv file under the heading "Default Spacing". Spacings are in 
+        units of thou.
         
     well codes:
         #TODO: finish this section. 

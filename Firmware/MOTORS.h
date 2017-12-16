@@ -74,9 +74,9 @@ boolean update_stepper(int i, int Pinpulse, int pinDirection){
 
   // It's time for a pulse.
   digitalWrite(Pinpulse, LOW);
-  delayMicroseconds(5); 
+  delayMicroseconds(1); 
   digitalWrite(Pinpulse, HIGH);
-  delayMicroseconds(5); 
+  delayMicroseconds(1); 
   // update timer variable. 
   Timer[i] -= Time[i];
   return true;

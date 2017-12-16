@@ -40,14 +40,15 @@
 // G30 location. 
 #define G30X 2800   //thou
 #define G30Z 100   //thou
-#define G30C 110   //degrees
+#define G30C 107   //degrees
 
 // defaults
 #define DEFAULT_MOVE_FEED 10
+#define DEFAULT_TURN_SPEED 100
 
 #define Converstion_Speed_Z  0.5// s/mm to milliseconds per step. 
-#define Converstion_Speed_X  1// s/mm to milliseconds per step.
-#define Converstion_Speed_C  1// s/mm to milliseconds per step.
+#define Converstion_Speed_X  0.5// s/mm to milliseconds per step.
+#define Converstion_Speed_C  100// s/mm to milliseconds per step.
 
 #define Conversion_Displacment_X 20.6896551724L // Steps per mm
 #define Conversion_Displacment_Z 20.6896551724L // Steps per mm
@@ -61,8 +62,8 @@
 #define TIMEOUT 50 // Keep this low to avoid jumps when new commands are recieved.
 
 // Homing Config. 
-#define HOME_SPEED 1 
-#define HOME_STEP 10   
+#define HOME_SPEED 0.02
+#define HOME_STEP 50   
 #define HOME_SPEED_C 10
 
  // G-Code commands.

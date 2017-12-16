@@ -9,9 +9,9 @@ class generic():
 
     # Keyway data
     _num_pins = 7
-    _feed_rate_move = 1 #thou/second non-contact moves.
+    _feed_rate_move = 10 #thou/second non-contact moves.
     _feed_rate_cut = 2    #thou/second contact moves.
-    _safe_Z = 1000 #Given in thou, reletive to the base of the workpiece. Should
+    _safe_Z = 200 #Given in thou, reletive to the base of the workpiece. Should
     _workpiece_height = 250 # Z height of work piece reletive to vice.
 
     _well_spacings = []
@@ -294,13 +294,12 @@ class generic():
 
     def _write_program_file(self, name, code):
         try:
-            file = open(name, 'w')
+            file = open(name, 'wb')
             for line in code:
-                file.write(line)
-                file.write(os.linesep)
+                file.write(line + "\n")
             file.close()
         except IOError as e:
-            print "IOError has occured during save: [{0}]".format(e)
+            print "IOError has occurred during save: [{0}]".format(e)
 
     def _take_snapshot(self):
         self._num_pins = self._backing_num_pins.get()
@@ -416,6 +415,7 @@ class generic():
         command_list = []
         command_list.append(self._pause_execution()) #start program record
         command_list.append(self._home())
+        command_list.append(self._go_to_start())
         command_list.append(self._set_relative())
         return command_list
 
@@ -443,35 +443,35 @@ class generic():
         :return: Above specified list of G code commands.
         """
         command_list = []
-        # Positioned above pervious well at safe height. A = 0
-        command_list.append(self._controlled_move(spacing,
+        # Positioned above pervious well at safe height. C = 0
+        command_list.append(self._controlled_move(-1 * spacing,
                                                   0,
                                                   angle,
                                                   self._feed_rate_move))
-        # Positioned above current well at safe height. A = Angle
+        # Positioned above current well at safe height. C = Angle
         command_list.append(self._controlled_move(0,
-                                                  - self._safe_Z + self._workpiece_height,
+                                                  + self._safe_Z - self._workpiece_height,
                                                   0,
                                                   self._feed_rate_move))
-        # Positioned above current well at top of piece. A = Angle.
+        # Positioned above current well at top of piece. C = Angle.
         command_list.append(self._controlled_move(0,
-                                                  -1 * height,
+                                                  height,
                                                   0,
                                                   self._feed_rate_cut))
-        # Positioned at the bottom of the well. A = Angle.
+        # Positioned at the bottom of the well. C = Angle.
         command_list.append(self._controlled_move(0,
-                                                  self._safe_Z - (self._workpiece_height - height),
+                                                  - self._safe_Z + (self._workpiece_height - height),
                                                   0,
                                                   self._feed_rate_move))
-        # Positioned at _safe_z above well. A = Angle.
+        # Positioned at _safe_z above well. C = Angle.
         command_list.append(self._controlled_move(0,
                                                   0,
                                                   -1 * angle,
                                                   self._feed_rate_move))
-        # Positioned at _safe_z above well. A = 0.
+        # Positioned at _safe_z above well. C = 0.
         return command_list
 
-    def _controlled_move(self, X = 0, Z = 0, A = 0, F = _feed_rate_cut):
+    def _controlled_move(self, X = 0, Z = 0, C = 0, F = _feed_rate_cut):
         """
         Generates a string corresponding to a single G1 command. This function
         implicitly assumes that the device is in reletive mode, and will thus
@@ -482,7 +482,7 @@ class generic():
         :param F:
         :return:
         """
-        return "G1,X{0},Z{1},A{2},F{3}".format(X, Z, A, F)
+        return "G1,X{0},Z{1},C{2},F{3}".format(X, Z, C, F)
 
     def _pause_execution(self):
         """

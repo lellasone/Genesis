@@ -49,15 +49,19 @@ void serialEvent(){
    * poped for execution. 
    */
   String command_new = Serial.readString();
+  command_new.replace("\r","");
+  command_new.replace("\n","");
+  Serial.println(command_new);
   if (command_new == COMMAND_STOP){
     commandStop();
   } else if (command_new == COMMAND_PAUSE){
     M123();
   } else if (command_new == COMMAND_RESUME){
     M124();
+  } else {
+    // TODO: Add a check that this is a valid command.
+    Serial.println("new_command");
+    CommandQueue.push(command_new);
   }
-  // TODO: Add a check that this is a valid command.
-  Serial.println("new_command");
-  CommandQueue.push(command_new);
 }
 
